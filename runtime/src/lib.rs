@@ -135,6 +135,7 @@ pub fn native_version() -> NativeVersion {
 
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 
+
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 2400;
 	pub const Version: RuntimeVersion = VERSION;
@@ -268,9 +269,13 @@ impl pallet_sudo::Config for Runtime {
 }
 
 /// Configure the pallet-template in pallets/template.
+
+const MaxAmount: u64 = 1_000_000;
+
 impl pallet_template::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = pallet_template::weights::SubstrateWeight<Runtime>;
+	type MaxAmount = MaxAmount;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.

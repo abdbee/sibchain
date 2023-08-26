@@ -32,6 +32,8 @@ pub mod pallet {
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// Type representing the weight of this pallet
 		type WeightInfo: WeightInfo;
+		///
+		type MaxAmount: Get<u64>;
 	}
 
 	// The pallet's runtime storage items.
