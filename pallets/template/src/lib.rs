@@ -42,6 +42,18 @@ pub mod pallet {
 	// https://docs.substrate.io/main-docs/build/runtime-storage/#declaring-storage-items
 	pub type Something<T> = StorageValue<_, u32>;
 
+	/// Maps members to their id
+	#[pallet::storage]
+	#[pallet::getter(fn memberid)]
+	pub(super) type IdOf<T> = StorageMap<
+		_,
+		Twox64Concat,
+		<T as frame_system::Config>::AccountId,
+		u32,
+		ValueQuery, 
+	>;
+
+
 	// Pallets use events to inform users when important changes are made.
 	// https://docs.substrate.io/main-docs/build/events-errors/
 	#[pallet::event]
@@ -50,6 +62,9 @@ pub mod pallet {
 		/// Event documentation should end with an array that provides descriptive names for event
 		/// parameters. [something, who]
 		SomethingStored { something: u32, who: T::AccountId },
+
+		// Event emitted when a member ID is set
+        MemberIdSet {who: T::AccountId, member_id: u32},
 	}
 
 	// Errors inform users that something went wrong.
@@ -59,6 +74,10 @@ pub mod pallet {
 		NoneValue,
 		/// Errors should have helpful documentation associated with them.
 		StorageOverflow,
+
+		/// Id already exists
+		IdExists
+
 	}
 
 	// Dispatchable functions allows users to interact with the pallet and invoke state changes.
@@ -85,8 +104,27 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// An example dispatchable that may throw a custom error.
 		#[pallet::call_index(1)]
+        #[pallet::weight(100_000_000)]
+		pub fn set_member_id (origin: OriginFor<T>, member_id: u32) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			// Check if member ID already exists for the account
+			ensure!(!<IdOf<T>>::contains_key(&who), Error::<T>::IdExists);
+			
+			// Insert or update the storage
+            <IdOf<T>>::insert(&who, member_id);
+
+			// Emit an event
+            Self::deposit_event(Event::MemberIdSet{who, member_id});
+
+			Ok(().into())
+
+
+		}
+
+		/// An example dispatchable that may throw a custom error.
+		#[pallet::call_index(2)]
 		#[pallet::weight(T::WeightInfo::cause_error())]
 		pub fn cause_error(origin: OriginFor<T>) -> DispatchResult {
 			let _who = ensure_signed(origin)?;
