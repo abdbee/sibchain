@@ -54,6 +54,7 @@ pub mod pallet {
 	>;
 
 
+
 	// Pallets use events to inform users when important changes are made.
 	// https://docs.substrate.io/main-docs/build/events-errors/
 	#[pallet::event]
@@ -74,9 +75,6 @@ pub mod pallet {
 		NoneValue,
 		/// Errors should have helpful documentation associated with them.
 		StorageOverflow,
-
-		/// Id already exists
-		IdExists
 
 	}
 
@@ -108,9 +106,6 @@ pub mod pallet {
         #[pallet::weight(100_000_000)]
 		pub fn set_member_id (origin: OriginFor<T>, member_id: u32) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-
-			// Check if member ID already exists for the account
-			ensure!(!<IdOf<T>>::contains_key(&who), Error::<T>::IdExists);
 			
 			// Insert or update the storage
             <IdOf<T>>::insert(&who, member_id);
