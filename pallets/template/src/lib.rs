@@ -53,6 +53,12 @@ pub mod pallet {
 		ValueQuery, 
 	>;
 
+	//mapping of all used member ids
+	#[pallet::storage]
+	#[pallet::getter(fn taken_memberids)]
+	pub(super) type TakenMemberIds<T: Config> = StorageMap<_, Twox64Concat, u32, bool, ValueQuery>;
+
+
 
 	// Pallets use events to inform users when important changes are made.
 	// https://docs.substrate.io/main-docs/build/events-errors/
@@ -75,8 +81,11 @@ pub mod pallet {
 		/// Errors should have helpful documentation associated with them.
 		StorageOverflow,
 
-		/// Id already exists
-		IdExists
+		/// AccountId already exists
+		AccountIdExists,
+
+		/// Member Id taken
+		MemberIdTaken,
 
 	}
 
@@ -109,11 +118,17 @@ pub mod pallet {
 		pub fn set_member_id (origin: OriginFor<T>, member_id: u32) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			// Check if member ID already exists for the account
-			ensure!(!<IdOf<T>>::contains_key(&who), Error::<T>::IdExists);
+			// Check if accountId already exists in storage
+			ensure!(!<IdOf<T>>::contains_key(&who), Error::<T>::AccountIdExists);
+
+			// Check if the member ID already exists for any account
+			ensure!(!TakenMemberIds::<T>::contains_key(member_id), Error::<T>::MemberIdTaken);
 			
 			// Insert or update the storage
             <IdOf<T>>::insert(&who, member_id);
+
+			// Mark this member ID as taken
+			TakenMemberIds::<T>::insert(member_id, true);
 
 			// Emit an event
             Self::deposit_event(Event::MemberIdSet{who, member_id});
